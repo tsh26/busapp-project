@@ -1,0 +1,128 @@
+<div class="container mt-4">
+  <form>
+    <div class="form-row">
+      <!-- First column with Bus Stop Code input field -->
+      <div class="form-group col-md-6 d-flex align-items-center">
+        <label for="busStopCode" style="margin: 5px">Code: </label>
+        <input type="number" style="max-height: 37px !important;" class="form-control" id="busStopCode"
+               name="busStopCode" [(ngModel)]="busStopCode"/>
+      </div>
+      <!-- Second column with Search Bus button -->
+      <div class="form-group col-md-2 d-flex align-items-center">
+        <button type="button" class="btn btn-outline-info shadow-sm rounded" (click)="searchBus()"><i
+          class="fa fa-search"></i> Search Bus
+        </button>
+      </div>
+
+      <div class="form-group col-md-2 d-flex align-items-center" *ngIf="userId!== null">
+        <button type="button" class="btn btn-outline-dark shadow-sm rounded" (click)="addBookMark(busStopCode)"><i
+          class="fa fa-bookmark"></i> Add Bookmark
+        </button>
+      </div>
+
+      <div class="form-group col-md-2 d-flex align-items-center" *ngIf="userId=== null">
+        <a href="#/authentication/login" class="btn btn-outline-dark shadow-sm rounded"
+           (click)="addBookMark(busStopCode)"><i
+          class="fa fa-bookmark"></i> Login to Bookmark
+        </a>
+      </div>
+    </div>
+    <div *ngIf="userId!== null">
+      <span style="color: #7777">Bookmarks: </span>
+      <span *ngFor="let bookmark of bookmarks" class="badge badge-secondary rounded mr-2 bookmark">
+        <!-- Display the bookmark name -->
+        <span (click)="setBookMark(bookmark.name)" style="cursor: pointer;">{{ bookmark.name }}</span>
+
+        <!-- Cross sign for deleting the bookmark -->
+        <span class="text-danger ml-2" style="cursor: pointer;" (click)="deleteBookMark(bookmark.id)">
+          <i class="fa fa-times-circle"></i>
+        </span>
+    </span>
+    </div>
+  </form>
+
+
+  <div class="container">
+    <!-- Loop through each service group -->
+    <p *ngIf="busStopCode" class="mt-5"><b>Bus Stop details: Road: </b>  {{getBusStopDetails(busStopCode).RoadName}} |
+      <b>Description: </b>  {{getBusStopDetails(busStopCode).Description}}</p>
+   <!-- <p> <b>Road: </b>  {{getBusStopDetails(busStopCode).RoadName}} | <b>Description: </b>  {{getBusStopDetails(busStopCode).Description}}</p> -->
+    <div *ngFor="let serviceGroup of groupedBuses | keyvalue" class="mb-3 mt-3">
+      <!-- Card for each service group -->
+      <div class="card">
+        <div class="card-header bg-secondary text-white">
+          <strong>Service No: {{ serviceGroup.key }}</strong>
+        </div>
+        <div class="card-body">
+          <!-- Table to display bus data for each service -->
+          <table class="table table-bordered table-sm">
+            <thead>
+            <tr>
+              <th>Operator</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Loop through each bus in the service group -->
+            <tr *ngFor="let bus of serviceGroup.value">
+              <!-- Display operator once for each bus -->
+              <td>{{ bus.Operator }}</td>
+              <!-- Loop through each nextBus in the bus.nextBuses array -->
+              <td colspan="6">
+                <table class="table table-bordered table-sm">
+                  <thead class="text-center bg-dark text-white">
+                  <tr>
+                    <th>Arrive In</th>
+                    <th>Load</th>
+                    <th>Wheel Chair</th>
+                    <th>Type</th>
+                    <th>Bus Location</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr *ngFor="let nextBus of bus.nextBuses">
+                    <td>{{ calculateMinutesToArrival(nextBus.EstimatedArrival) }}
+                      min
+                    </td>
+                    <td>{{ convertLoad(nextBus.Load) }} </td>
+                    <td>{{ convertFeatures(nextBus.Feature)}} <img src="{{getFeatureImage(nextBus.Feature)}}"
+                                                                   style="max-width: 30px !important;" alt=""></td>
+                    <td>{{ convertType(nextBus.Type)}} <img src="{{getTypeImage(nextBus.Type)}}"
+                                                            style="max-width: 30px !important;" alt=""></td>
+                    <td (click)="openModal(show_map, nextBus.Longitude, nextBus.Latitude)" class="text-center">
+                      <button style="cursor: pointer" class="text-danger"><i class="fa fa-map-marker-alt"></i></button>
+                    </td>
+
+                  </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<ng-template #show_map let-modal>
+  <div class="modal-content" style="max-width: 500px !important;">
+    <div class="modal-header">
+      <h4 class="modal-title" id="modal-basic-title3">Bus Location</h4>
+      <button type="button" class="btn btn-outline-danger btn-close" aria-label="Close"
+              (click)="modal.dismiss('Cross click')">X
+      </button>
+    </div>
+    <div class="modal-body">
+            <agm-map [latitude]="lat" [longitude]="lon" [zoom]="16">
+              <agm-marker [latitude]="lat" [longitude]="lon"></agm-marker>
+            </agm-map>
+
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancel</button>
+    </div>
+  </div>
+</ng-template>
+
+
